@@ -148,5 +148,6 @@ public interface BlogMapper {
 
 而这个 `namespace` 值你可以写成上面的那种形式, 你也可以只写一个简单的值\(例如: BlogMapper\), 但是你要注意, 如果 `BlogMapper` 是唯一的就可以直接使用, 如果出现两个或两个以上的相同名称\(例如:`org.mybatis.example.BlogMapper` 和 `org.mybatis.example1.BlogMapper`\),  那么使用时就会跑出异常, 这种情况下就必须使用完全限定名.
 
-这里推荐使用全限定名也就是包名+类名的形式, 这样可以直接拿来使用. 而 `namespace` 的作用就是与你的接口进行绑定.
+这里推荐使用全限定名也就是包名+类名的形式, 这样可以直接拿来使用. 而 `namespace` 的作用就是与你的接口进行绑定. 
 
+因为在MyBatis当中, 映射器实例是通过动态代理来实现的. 我们要告诉MyBatis你要帮我们动态代理哪个接口, 然后映射语句会和对应的方法名进行绑定, 从而生成映射器实例.
