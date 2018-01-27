@@ -70,8 +70,21 @@ properties 是一个配置属性的元素, 而且这些属性都是可外部配�
 </properties>
 ```
 
+## settings
+
+这里直接提供[官网的资料](http://www.mybatis.org/mybatis-3/zh/configuration.html#settings).
+
+## 别名
+
+别名就是另一个名字. 因为我们用到的是权限定名, 这样每次都要这样写就太麻烦了, 所以我们可以使用一个简短的名称去代替它. 这个简短的名称就是别名.
+
+在 MyBatis 中别名是不分大小写的, 而且别名可以在 MyBatis 上下文中使用. 
+
+一个别名(typeAliases) 的实例是在解析配置文件时候生成的, 然后长期保存在 Configuration 对象, 当我们使用它时, 再取出来这样就没有必要运行的时候再次生成它的实例了.
 
 
+
+> 别名在 MyBatis 里分为系统定义别名和自定别名两类.
 
 
 
