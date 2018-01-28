@@ -103,5 +103,80 @@ properties 是一个配置属性的元素, 而且这些属性都是可外部配�
 > 在 MyBatis 中别名是不分大小写的, 而且别名可以在 MyBatis 上下文中使用. 
 > 别名在 MyBatis 里分为系统定义别名和自定别名两类. 
 
+### 系统定义别名
+MyBatis 定义了一些经常使用的类型别名, 例如数值 字符串 日期和集合等.
+我们可以在 MyBatis 中直接使用它们, 在使用时不要重复定义不然就会覆盖.
+
+> 点击[这里](http://www.mybatis.org/mybatis-3/zh/configuration.html#typeHandlers)可以查看系统别名
+
+我们可以通过 MyBatis 的源码 ```org.apache.ibatis.type.TypeAliasRegistry``` 查看系统定义的别名, 也可以看到哪些支持数组.
+
+```
+    registerAlias("integer", Integer.class);
+    registerAlias("double", Double.class);
+    registerAlias("float", Float.class);
+    registerAlias("boolean", Boolean.class);
+    
+    registerAlias("byte[]", Byte[].class);
+    registerAlias("long[]", Long[].class);
+    registerAlias("short[]", Short[].class);
+    registerAlias("int[]", Integer[].class);
+```
+
+### 自定义别名
+我们可以使用 ```typeAliases``` 配置别名, 也可以用代码方式注册别名
+
+```
+<typeAliases>
+  <typeAlias alias="Author" type="domain.blog.Author"/>
+</typeAliases>
+```
+
+这样我们就可以使用 ```Author``` 来代替全路径, 减少配置的复杂度.
+
+当然如果你要自定义很多别名, 这种配置方式也很麻烦
+```
+<typeAliases>
+  <typeAlias alias="Author" type="domain.blog.Author"/>
+  <typeAlias alias="Blog" type="domain.blog.Blog"/>
+  <typeAlias alias="Comment" type="domain.blog.Comment"/>
+  <typeAlias alias="Post" type="domain.blog.Post"/>
+  <typeAlias alias="Section" type="domain.blog.Section"/>
+  <typeAlias alias="Tag" type="domain.blog.Tag"/>
+</typeAliases>
+```
+
+我们可以使用报扫描器来进行自定义别名的注册
+```
+<typeAliases>
+  <package name="domain.blog1"/>
+  <package name="domain.blog2"/>
+</typeAliases>
+```
+
+这样 MyBatis 会按照类名来设置你的别名, 直接调用类名来代替全路径了.  
+
+> 比如 ```domain.blog.Author``` 的别名为 ```author``` 首字母小写.
+
+当然如果你的这两个包存在相同的类名, 那么也会抛出异常的. 这个时候我们可以通过注解来解决这个问题.
+```
+@Alias("author")
+public class Author {
+    ...
+}
+```
+
+这样就会使用 ```@Alias()``` 注解设置的值, 来设置别名了.
+
+## 类型处理器(typeHandler)
+MyBatis 在预处理语句中设置一个参数时, 或者从结果集中取出一个值时, 都会用注册了的 ```类型处理器``` 进行处理.
+
+```类型处理器``` 常用的配置为 Java 类型(javaType) JDBC类型(jdbcType). 作用就是将参数从javaType转换为jdbcType, 或者从数据库取出时把jdbcType转化为javaType.
+
+
+
+也就是说我们从数据库中去除数据的时候要对数据进行特殊处理, 这个时候我们就可以自定义一个 ```typeHandler```.
+
+
 
 
