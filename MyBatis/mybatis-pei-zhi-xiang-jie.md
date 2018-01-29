@@ -169,13 +169,38 @@ public class Author {
 这样就会使用 ```@Alias()``` 注解设置的值, 来设置别名了.
 
 ## 类型处理器(typeHandler)
-MyBatis 在预处理语句中设置一个参数时, 或者从结果集中取出一个值时, 都会用注册了的 ```类型处理器``` 进行处理.
+MyBatis 在预处理语句中设置一个参数时, 或者从结果集中取出一个值时, 都会用类型处理器将获取的值以合适的方式转换成 Java 类型.
 
 ```类型处理器``` 常用的配置为 Java 类型(javaType) JDBC类型(jdbcType). 作用就是将参数从javaType转换为jdbcType, 或者从数据库取出时把jdbcType转化为javaType.
 
+### 系统定义的 typeHandler
+MyBatis 定义了一系列的 ```typeHandler```, 我们可以在 ```org.apache.ibatis.type.TypeHandlerRegistry``` 中查看系统注册的 ```typeHandler```
 
+```
+    register(Boolean.class, new BooleanTypeHandler());
+    register(Boolean.TYPE, new BooleanTypeHandler());
+    register(JdbcType.BOOLEAN, new BooleanTypeHandler());
+    register(JdbcType.BIT, new BooleanTypeHandler());
+    
+    register(Byte.class, new ByteTypeHandler());
+    register(Byte.TYPE, new ByteTypeHandler());
+    register(JdbcType.TINYINT, new ByteTypeHandler());
+    
+    register(Short.class, new ShortTypeHandler());
+    register(Short.TYPE, new ShortTypeHandler());
+    register(JdbcType.SMALLINT, new ShortTypeHandler());
+    
+```
 
-也就是说我们从数据库中去除数据的时候要对数据进行特殊处理, 这个时候我们就可以自定义一个 ```typeHandler```.
+上面我只复制了一部分, 大家可以点击[这里](http://www.mybatis.org/mybatis-3/zh/configuration.html#typeHandlers)
+
+请注意
+ - 数值类型的精度, 数据库 int double decimal 这些类型和java的精度 长度都是不一样的.
+ - 时间精度, 取数据到日期用 ```DateOnlyTypeHandler``` 即可, 用到精度为秒的用 ```SqlTimestampTypeHandler``` 等.
+ 
+ 
+
+也就是说我们从数据库中取出数据的时候要, 如果系统定义的类型处理器满足不了我们的需求. 这个时候我们就可以自定义一个 ```typeHandler```.
 
 
 
