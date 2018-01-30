@@ -198,9 +198,117 @@ MyBatis 定义了一系列的 ```typeHandler```, 我们可以在 ```org.apache.i
  - 数值类型的精度, 数据库 int double decimal 这些类型和java的精度 长度都是不一样的.
  - 时间精度, 取数据到日期用 ```DateOnlyTypeHandler``` 即可, 用到精度为秒的用 ```SqlTimestampTypeHandler``` 等.
  
- 
+ ### 自定义 typeHandler
+如果系统定义的类型处理器满足不了我们的需求. 这个时候我们就可以自定义一个 ```typeHandler```.
 
-也就是说我们从数据库中取出数据的时候要, 如果系统定义的类型处理器满足不了我们的需求. 这个时候我们就可以自定义一个 ```typeHandler```.
+首先需要明确两个问题: 
+ - 我们自定义的 ```typeHandler``` 需要处理什么类型? 现有的 ```typeHandler``` 适合我们使用吗?
+ - 我们需要特殊处理 java 的哪些类型和对应处理数据库的哪些类型.
+ 
+我们可以实现 ```org.apache.ibatis.type.TypeHandler``` 接口或继承一个 ```org.apache.ibatis.type.BaseTypeHandler``` 类. 这是因为 ```BaseTypeHandler``` 已经实现了 ```TypeHandler``` 接口.
+
+```
+public abstract class BaseTypeHandler<T> extends TypeReference<T> implements TypeHandler<T>
+{
+   ....
+}
+```
+
+**下面我们将开始创建我们自己的 typeHandler 来替换系统的 ```StringTypeHandler```**
+
+```
+@MappedJdbcTypes(JdbcType.VARCHAR)
+public class ExampleTypeHandler extends BaseTypeHandler<String> {
+
+  @Override
+  public void setNonNullParameter(PreparedStatement ps, int i, String parameter, JdbcType jdbcType) throws SQLException {
+    ps.setString(i, parameter);
+  }
+
+  @Override
+  public String getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    return rs.getString(columnName);
+  }
+
+  @Override
+  public String getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    return rs.getString(columnIndex);
+  }
+
+  @Override
+  public String getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+    return cs.getString(columnIndex);
+  }
+}
+```
+
+```@MappedJdbcTypes(JdbcType.VARCHAR)``` 这个注解的意思就是指定数据库的类型为 ```VARCHAR``` 类型. 类型必须是 ```org.apache.ibatis.type.JdbcType``` 所列出的.
+
+```BaseTypeHandler<String>``` 指定泛型为 java 的 String 类型, 当 java 参数为 String 类型的时候, 我们会使用这个类型处理器来处理.
+
+这样我们就创建了一个属于我们自己的类型处理器, 那么 MyBatis 怎么知道我们有这个类型处理器呢?
+
+**第一种 通过自动检索的方式**
+```
+<typeHandlers>
+  <package name="org.mybatis.example"/>
+</typeHandlers>
+```
+
+> 如果是用这种方式, 必须通过注解来制定 JDBC 的类型.
+
+**第二种 手动配置多个类型处理器**
+```
+<typeHandlers>
+  <typeHandler handler="org.mybatis.example.ExampleTypeHandler"/>
+</typeHandlers>
+```
+
+注意: ```typeHandler``` 元素不只有一个 ```handler``` 属性, 它还有 ```javaType``` 和 ```jdbcType``` 属性.
+
+顾名思义, 我们除了通过类型处理器的泛型来指定, 处理器处理的java类型外. 还可以通过 ```javaType```属性(```javaType="String"```) 或者 ```@MappedTypes``` 注解(```@MappedTypes({String.class})```) 来指定与其关联的java类型列表.
+
+同样我们可以通过 ```jdbcType``` 属性(```jdbcType="VARCHAR"```) 或者 ```@MappedJdbcTypes``` 注解(```@MappedJdbcTypes(JdbcType.VARCHAR)```) 来指定被关联的 JDBC 类型.
+
+这样我们自定义的类型处理器就完成了, 当 MyBatis 语句被执行时会根据数据类型来帮我们自动选择类型处理器. 但是有些情况下还需要我们自己指定类型处理器.
+
+指定类型处理器有三种方式:
+**第一种 ```result``` 元素 jdbcType 和 javaType 属性**
+```
+    <resultMap id="BaseResultMap" type="cc.iyayu.basis.model.SystemUserAccountDO">
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="systemUserAccountCode" jdbcType="VARCHAR" property="systemUserAccountCode" />
+        <result column="systemUserAccountName" jdbcType="VARCHAR" property="systemUserAccountName" />
+        <result column="passWord" jdbcType="VARCHAR" property="passWord" />
+        <result column="salt" jdbcType="VARCHAR" property="salt" />
+        <result column="available" jdbcType="VARCHAR" property="available" />
+    </resultMap>
+```
+
+> 在 ```result``` 元素中定义的 jdbcType 和 javaType 和我们定义在配置文件里的 typeHandler 是一致的才行.
+
+**第二种 ```result``` 元素 typeHandler 属性**
+```
+        <result column="available" typeHandler="org.mybatis.example.ExampleTypeHandler" property="available" />
+```
+
+> 这种方式不需要我们在配置文件中定义了.
+
+**第三种 在参数中指定**
+```
+    <update id="disabledOrEnabled" parameterType="cc.iyayu.basis.vo.SystemUserAccountVO">
+        UPDATE `system_user_account`
+        SET `available` = #{available javaType=string, jdbcType=VARCHAR, typeHandler=org.mybatis.example.ExampleTypeHandler}
+        WHERE (`id` = #{id});
+    </update>
+```
+
+> typeHandler 一样也是不用在配置里定义, 但是使用 javaType 和 jdbcType 需要定义.
+
+
+
+
+
 
 
 
