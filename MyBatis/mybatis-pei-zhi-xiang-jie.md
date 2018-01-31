@@ -305,6 +305,79 @@ public class ExampleTypeHandler extends BaseTypeHandler<String> {
 
 > typeHandler 一样也是不用在配置里定义, 但是使用 javaType 和 jdbcType 需要定义.
 
+## ObjectFactory(对象工厂)
+当 MyBatis 每次创建结果对象的新实例时, 例如从数据库中查询除了多条记录, MyBatis 就会为我们创建这些记录的对象. 这个时候使用的就是对象工厂.
+
+我们一般使用的是 ```org.apache.ibatis.reflection.factory.DefaultObjectFactory``` 这个默认的 ```ObjectFactory``` 它实现了, ```ObjectFactory``` 接口.
+
+> 这个默认的对象工厂, 通过无参构造(默认构造)函数或有参构造函数, 来为我们实例化目标类. 
+
+如果要定制一个属于我们对象工厂, 那么我们可以直接继承 ```DefaultObjectFactory``` 类
+```
+public class ExampleObjectFactory extends DefaultObjectFactory {
+  public Object create(Class type) {
+    return super.create(type);
+  }
+  public Object create(Class type, List<Class> constructorArgTypes, List<Object> constructorArgs) {
+    return super.create(type, constructorArgTypes, constructorArgs);
+  }
+  public void setProperties(Properties properties) {
+    super.setProperties(properties);
+  }
+  public <T> boolean isCollection(Class<T> type) {
+    return Collection.class.isAssignableFrom(type);
+  }
+}
+```
+```setProperties``` 方法可以获取我们设置的属性, 用来配置 ```ObjectFactory```
+
+我们要通过一下配置来让 ObjectFactory 生效.
+```
+<objectFactory type="org.mybatis.example.ExampleObjectFactory">
+  <property name="someProperty" value="100"/>
+</objectFactory>
+```
+> 上面设置了一个属性名为 someProperty 值是100.
+
+
+## 配置环境(environments)
+我们在开发 测试 和生产环境下需要用到的数据库是不同的. 在这种情况下我们可能需要许多不同的配置, 配置环境就可以满足我们的这种需求, 我们可以通过配置环境来配置多个数据源.
+
+每个环境的配置分为两大部分: 一个是数据源的配置, 另外一个是数据库实物的配置.
+```
+<environments default="development">
+  <environment id="development">
+    <transactionManager type="JDBC">
+      <property name="..." value="..."/>
+    </transactionManager>
+    <dataSource type="POOLED">
+      <property name="driver" value="${driver}"/>
+      <property name="url" value="${url}"/>
+      <property name="username" value="${username}"/>
+      <property name="password" value="${password}"/>
+    </dataSource>
+  </environment>
+</environments>
+```
+
+说一下上面的配置:
+ - environments 中的 default 属性, 表示在缺省的情况下, 我们将启用哪一个配置环境.
+ - environment 元素是配置一个环境的开始, 属性 id 是设置这个环境的标志.
+ - transactionManager 配置的是数据库事务
+ - dataSource 是数据源的配置
+
+> 关于 dataSource 请参考[这里](http://www.mybatis.org/mybatis-3/zh/configuration.html#environments)
+
+### 事务管理器(transactionManager)
+在 MyBatis 中有两种类型的事务管理器
+ - JDBC 这个配置就是直接使用了 JDBC 的提交和回滚, 它依赖于从数据源得到的连接来管理事务作用域.
+ - MANAGED 这个配置它从来不提交或回滚, 而是让容器来管理事务的整个生命周期.
+ 
+> 如果你使用 Spring + MyBatis, 则没有必要配置事务管理器, 因为 Spring 模块会使用自带的管理器来覆盖前面的配置.
+
+
+
+
 
 
 
