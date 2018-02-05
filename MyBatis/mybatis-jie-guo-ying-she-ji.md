@@ -45,10 +45,42 @@ resultMap 元素里面还有一下元素
 
 ```discriminator``` 是鉴别器, 使用结果的值来决定使用哪个结果映射. 比如, 人有男人和女人. 你可以实例化一个人的对象, 但是要根据情况用男人类或女人类去实例化.
 
+## ```association``` 一对一关系
+### 嵌套结果
+实际操作中, 首先我们需要确定对象的关系. 以学生信息级联为例, 在学校里面学生和学生证是一对一的关系.
 
+因此, 我们建立一个 ```StudentBean``` 和 ```StudentSelfardBean``` 的 POJO 对象. 那么在 ```Student``` 的 POJO 我们就应该有一个类型为 ```StudentSelfardBean``` 的属性 ```studentSelfard```, 这样便形成了级联.
 
+这时候我们需要建立 ```Student``` 的映射器 ```StudentMapper``` 和 ```StudentSelfcard``` 的映射器 ```StudentSelfcardMapper```.
 
+而在 ```StudentSelfcardMapper``` 里面我们提供了一个 ```findStudentSelfcardByStudentId``` 的方法.
+```
+<select id="findStudentSelfcardByStudentId" parameterType="int" resultMap="StudentSelfcardMap">
+    select * from id = #{studentId}
+</select>
+```
 
+有了以上代码, 我们将可以在 ```StudentMapper``` 里面使用了 ```StudentSelfcardMapper``` 进行级联.
+
+```
+<association property="studentSelfcard" column="id" select="org.mybatis.example.StudentSelfcardMapper.findStudentSelfcardByStudentId"/>
+```
+
+```property="studentSelfcard"``` 指定哪个属性是联合的对象. 
+
+```column="id"``` 则是指定传递给 ```select``` 语句的参数.
+
+```select="org.mybatis.example.StudentSelfcardMapper.findStudentSelfcardByStudentId"``` 用指定的 SQL 去查询.
+
+当取出 ```Student``` 的时候, MyBatis 就会使用下面 SQL 取出我们需要的级联信息.
+
+```
+org.mybatis.example.StudentSelfcardMapper.findStudentSelfcardByStudentId
+```
+
+也就是说我们将 ```column``` 列的值传递给 ```select``` 的映射 SQL 语句中, 然后将结果赋值给 ```property``` 设置的属性中.
+
+> 如果有多个参数我们可以使用逗号分割, 例如: ```column="{prop1=col1,prop2=col2}"```
 
 
 
