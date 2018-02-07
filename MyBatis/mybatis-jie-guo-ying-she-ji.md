@@ -136,10 +136,123 @@ org.mybatis.example.StudentSelfcardMapper.findStudentSelfcardByStudentId
 </resultMap>
 ```
 
+## ```discriminator``` 鉴别器
 
+先看看官网是怎么说的
 
+> 一个单独的数据库查询有时候会返多种不同数据类型的结果集. 
 
+也就是说我们可以通过鉴别器来将查询的结果映射为不同的对象, 例如: ```Vehicle``` 有两个子类分别为 ```Car``` 和 ```Boat```
 
+其中父类的属性是两个子类中共有的属性, 而两个子类中有分别有它们自己特有的属性, 例如:
+
+**Vehicle**
+```
+public class Vehicle {
+    private int id;  
+    private String vin;
+    private Date year;  
+    private String color;  
+    private String vendor;  
+    private int vehicleType;  
+}
+```
+
+**Car**
+```
+public class Car extends Vehicle {
+    private int doorCount;
+}
+```
+
+**Boat**
+```
+public class Boat extends Vehicle {  
+    private String quant;
+}  
+```
+
+**你的表可能是这个样子的**
+```
+create table vehicle (  
+ id bigint(10) primary key AUTO_INCREMENT,  
+ vin varchar(10),  
+ year date,  
+ color varchar(10),  
+ vendor varchar(10),  
+ vehicle_type int,    //类型：1表示car, 2表示boat  
+ door_count int,      //车门数量，car独有属性  
+ quant varchar(10)    //船桨，boat独有属性  
+);  
+```
+
+那么鉴别器是怎么区分我的某条记录属于 ```Car``` 还是 ```Boat```. 当然是通过 ```vehicle_type``` 字段了.
+
+我们看一下在 XML 中如果来使用鉴别器
+```
+<mapper namespace="com.yjq.entity.Vehicle">  
+    <resultMap id="vehicleResult" type="Vehicle">  
+        <id property="id" column="id" />  
+        <result property="vin" column="vin"/>  
+        <result property="year" column="year"/>  
+        <result property="vendor" column="vendor"/>  
+        <result property="color" column="color"/>  
+        <result property="vehicleType" column="vehicle_type"/>  
+        
+        <discriminator javaType="int" column="vehicle_type">  
+            <case value="1" resultMap="carResult"/>  
+            <case value="2" resultMap="boatResult"/>  
+        </discriminator>  
+    </resultMap>
+    
+    <resultMap id="carResult" type="Car">
+        <result property="doorCount" column="door_count" />
+    </resultMap>
+    
+    <resultMap id="boatResult" type="Boat">
+        <result property="quant" column="quant" />
+    </resultMap>  
+      
+    <select id="selectVehicle" parameterType="int" resultMap="vehicleResult">
+        select * from vehicle where id = #{id};
+    </select>
+</mapper>  
+```
+
+```discriminator``` 元素表示鉴别器, ```javaType="int"``` 指定参数类型也就是 ```value="1"``` 的数据类型. ```column="vehicle_type"``` 就是我要取哪一列的值进行比较.
+
+如果我们第一条记录的 ```vehicle_type``` 字段值为 ```1```, 那么采用 ```carResult```. 如果第二条记录 ```vehicle_type``` 字段值为 ```2``` 那么就会采用 ```boatResult```. 
+
+> 如果 ```value``` 属性中没有```vehicle_type``` 的值, 则不会选取任何resultMap.
+
+这是在一张表的情况下, 如果是多张表的情况下呢?
+```
+<resultMap id="femaleEmployeeMap" type="femaleEmployee">  
+    <collection property="uterusList" select="com.xxxxx.xxxx.mapper.FemaleEmployeeMapper.findUterusList" column="id" />  
+</resultMap>
+```
+
+上面我们看到一个繁琐的过程就是要创建多个 ```resultMap``` 元素, 我们可以使用一下方式来解决.
+```
+<resultMap id="vehicleResult" type="Vehicle">  
+    <id property="id" column="id" />  
+    <result property="vin" column="vin"/>  
+    <result property="year" column="year"/>  
+    <result property="vendor" column="vendor"/>  
+    <result property="color" column="color"/>  
+    <result property="vehicleType" column="vehicle_type"/>  
+    <discriminator javaType="int" column="vehicle_type">  
+        <case value="1" resultMap="carResult" type="Car">  
+            <result property="doorCount" column="door_count" />  
+        </case>  
+        <case value="2" resultMap="boatResult" >  
+            <result property="quant" column="quant" />  
+        </case>  
+    </discriminator>  
+</resultMap>  
+```
+
+> 这些都是结果映射, 如果你不指定任何结果, 那么 MyBatis 将会为你自动匹配列和属性.
 
 
 
