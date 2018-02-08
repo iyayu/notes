@@ -76,8 +76,11 @@ MyBatis 对缓存提供支持, 但是在没有配置的默认情况下, 它只�
  - size: 引用数目, 一个正整数, 代表缓存最多可以存储多少个对象.
  - readOnly: 只读, 缓存数据只能读取不能修改. 默认为false.
  
-
-
+## 自定义缓存
+```
+<cache type="com.domain.something.MyCustomCache"/>
+```
+类必须实现 ```org.mybatis.cache.Cache``` 接口.
 
 
 
