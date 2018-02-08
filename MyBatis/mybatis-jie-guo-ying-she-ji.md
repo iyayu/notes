@@ -38,6 +38,11 @@ resultMap 元素里面还有一下元素
 </resultMap>
 ```
 
+**自动映射**
+1. MyBatis 会自动将列明映射到相同的 JavaBean 属性上.
+2. 如果数据库中使用的是经典字段名, 如 字段名 ```A_COLUMN```, JavaBean 属性名使用驼峰命名法. 我们需要设置 ```mapUnderscoreToCamelCase``` 属性为 ```true``` 才可以.
+3. 但是如果我们的 JavaBean 属性名或字段名, 都不是按照上面两点进行明明的, 那么我们就需要配置 ```resultMap``` 元素. 这样在进行自动映射的时候, 就会按照你设置的, 例如```<result property="password" column="hashed_password"/>``` 来进行自动映射.
+
 # 级联
 ```association``` 代表一对一关系.
 
