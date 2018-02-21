@@ -1,7 +1,7 @@
 # IoC容器
 
 ## Spring IoC容器介绍
-IoC就是 **Inversion of Control** 控制反转, 也被称为依赖注入(DI). 
+IoC就是 **Inversion of Control** 的缩写, 字面意思就是控制反转, 也被称为依赖注入(DI). 
 
 **那么啥是控制反转?**
 
@@ -68,7 +68,7 @@ ApplicationContext 接口提供了几个实现. 如果你是在独立应用程�
 
 所以在有些时候我们需要将 bean 分别放在多个XML文件中. 例子如下:
 
-服务层对象(services.xml)配置文件
+**服务层对象(services.xml)配置文件**
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -84,7 +84,7 @@ ApplicationContext 接口提供了几个实现. 如果你是在独立应用程�
 </beans>
 ```
 
-数据访问对象(daos.xml)文件
+**数据访问对象(daos.xml)文件**
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
