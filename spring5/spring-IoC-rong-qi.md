@@ -133,8 +133,8 @@ List<String> userList = service.getUsernameList();
 ```
 使用该方法 ```T getBean(String name, Class<T> requiredType)``` 可以检索bean的实例.
 
-在 Spring 5 中我们也可以使用以下方式来进行创建
-```
+
+## 在 Spring 5 中我们也可以使用以下方式来进行创建
 
 **使用Groovy配置**
 ```
