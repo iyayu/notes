@@ -161,7 +161,67 @@ context.refresh();
 
 在基于XML的配置元数据中, 可以使用id或name属性来指定bean标识符. 如果有多个别名可以在name属性中用逗号(,) 分号(;)或空格分隔.
 
+**services.xml文件**
+```
+<bean id="test1" name="alias1, alias2; alias3 alias4" class="cc.iyayu.Test1"></bean>
+```
+
+**bean获取方式**
+```
+GenericApplicationContext context = new GenericApplicationContext();
+new XmlBeanDefinitionReader(context).loadBeanDefinitions("services.xml");
+context.refresh();
+
+// 通过id属性 获取bean
+Test1 test1 = context.getBean("test1", Test1.class);
+
+// 通过name属性(别名) 获取bean
+Test1 alias1 = context.getBean("alias1", Test1.class);
+alias1.show();
+
+Test1 alias2 = context.getBean("alias2", Test1.class);
+alias2.show();
+
+Test1 alias3 = context.getBean("alias3", Test1.class);
+alias3.show();
+
+Test1 alias4 = context.getBean("alias4", Test1.class);
+alias4.show();
+```
+
 > bean名称以小写字母开头, 使用骆驼为基础.
+
+**使用alias元素来指定bean别名**
+```
+<alias name="fromName" alias="toName"/>
+```
+```fromName```: 该属性指定一个Bean实例的标识名, 表示将会为该Bean指定别名.
+
+```toName```: 指定一个别名.
+
+例子
+```
+<bean id="test1" name="alias1" class="cc.iyayu.Test1"></bean>
+<alias name="test1" alias="alias2"/>
+<alias name="alias1" alias="alias3"/>
+```
+
+## BeanDefinition 对象
+SpringIoC容器管理一个或多个bean. 这些bean是用您提供给容器的配置元数据创建的, 例如以XML ```<bean/>``` 定义的形式创建.
+
+在容器本身中, 这些bean定义表示为 ```BeanDefinition``` 对象, 这些对象包含(除其他信息外)以下元数据:
+ - 包限定类名: 定义bean的实际实现类.
+ - bean行为配置元素: 它声明这个bean在容器的行为方式(范围、生命周期回调等等)
+ - bean所需其他bean的引用: 这些引用称为依赖项.
+ - 在新创建的对象中设置的其他配置: 例如, 在管理连接池的bean中使用的连接数或池的大小限制.
+ 
+
+
+
+
+
+
+
 
 
 
