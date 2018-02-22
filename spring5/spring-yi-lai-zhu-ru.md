@@ -460,7 +460,10 @@ exampleBean.setEmail(null);
  - **byName**: 通过属性名字进行自动装配. Spring会查找一个与将要装配的属性同样名字的bean. 比如, 你有一个bean它包含一个master属性, Spring就会查找一个叫做master的bean定义, 然后用它来设置master属性.
  - **byType**: 如果容器中正好存在一个与属性类型相同的bean, 则自动处理属性. 如果存在多个会抛出异常, 这表明不能对该bean使用byType自动装配. 如果没有匹配的bean, 则什么都不会发生属性没有设置.
  - **constructor**: 类似于byType, 但适用于构造函数参数. 如果容器中没有一个构造函数参数类型所需要的bean, 则会引发致命错误.
- 
+
+> 注意: 显式的指定依赖, 比如 ```property``` 和 ```constructor-arg``` 元素, 总会覆盖自动装配. 自动装配的行为可以和依赖检查结合使用, 依赖检查会在自动装配完成后发生.
+
+
 
 
 
