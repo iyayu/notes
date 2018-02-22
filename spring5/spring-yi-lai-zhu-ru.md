@@ -170,11 +170,76 @@ Bean依赖的解决通常取决于下面这些内容:
  - 每个属性或构造函数参数都是一个值, 从其指定的格式转换为该属性或构造函数参数的实际类型. 默认情况下, Spring可以将以字符串格式提供的值转换为所有内置类型, 如int、long、string、boole等.
  
 
+## 直接值(基础类型, String等等)
+```<property/>``` 元素的 ```value``` 属性, 将对象中的属性或构造函数参数指定为可读的字符串表示形式. Spring的转换服务用于将这些值从字符串转换为属性或参数的实际类型.
+```
+<bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+    <property name="url" value="jdbc:mysql://localhost:3306/mydb"/>
+    <property name="username" value="root"/>
+    <property name="password" value="masterkaoli"/>
+</bean>
+```
 
+> ```value="root"``` 中的 **root** 就是可读的字符串形式.
 
+下面的示例使用p命名空间进行更简洁的XML配置.
+```
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+    <bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource"
+        destroy-method="close"
+        p:driverClassName="com.mysql.jdbc.Driver"
+        p:url="jdbc:mysql://localhost:3306/mydb"
+        p:username="root"
+        p:password="masterkaoli"/>
 
+</beans>
+```
 
+你也可以配置为 ```java.util.Properties``` 实例:
+```
+<bean id="mappings"
+    class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+
+    <property name="properties">
+        <value>
+            jdbc.driver.className=com.mysql.jdbc.Driver
+            jdbc.url=jdbc:mysql://localhost:3306/mydb
+        </value>
+    </property>
+</bean>
+```
+
+## idref元素
+```idref``` 元素只是将容器中另一个bean的id(String值-而不是引用)传递给 ```<constructor-arg/>``` 或 ```<properties/>``` 元素的一种防止错误的方法.
+```
+<bean id="theTargetBean" class="..."/>
+
+<bean id="theClientBean" class="...">
+    <property name="targetName">
+        <idref bean="theTargetBean"/>
+    </property>
+</bean>
+```
+
+上面的bean定义片段与下一段代码完全相同(在运行时):
+```
+<bean id="theTargetBean" class="..." />
+
+<bean id="client" class="...">
+    <property name="targetName" value="theTargetBean"/>
+</bean>
+```
+
+第一种形式比第二种形式更好的原因是: 使用 ```idref``` 标记将会使Spring在部署的时候就验证其他的bean是否真正存在; 在第二种形式中, ```targetName``` 属性的类仅仅在Spring实例化这个类的时候做它自己的验证, 这很可能在容器真正部署完很久之后.
+
+## 对其他bean的引用
+```ref``` 元素是 ```<constructor-arg/>``` 或 ```<properties/>``` 定义元素中的最后一个元素. 在这里, 将bean的指定属性值设置为对容器管理的另一个bean(协作者)的引用.
 
 
 
