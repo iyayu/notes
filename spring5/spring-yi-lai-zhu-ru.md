@@ -241,6 +241,229 @@ Bean依赖的解决通常取决于下面这些内容:
 ## 对其他bean的引用
 ```ref``` 元素是 ```<constructor-arg/>``` 或 ```<properties/>``` 定义元素中的最后一个元素. 在这里, 将bean的指定属性值设置为对容器管理的另一个bean(协作者)的引用.
 
+通过 ```<ref/>``` 标记的bean属性指定目标bean是最常见的形式, 并且允许在同一个容器或父容器中创建对任何bean的引用, 而不管它是否位于同一个XML文件中. bean属性的值可以与目标bean的 ```id``` 属性相同，也可以是目标bean的 ```name``` 属性中的值之一.
+
+```
+<ref bean="someBean"/>
+```
+
+通过父属性指定目标bean将创建对当前容器父容器中bean的引用. 父属性的值可能与目标bean的 ```id``` 属性相同, 也可能与目标bean的 ```name``` 属性中的值相同, 并且目标bean必须位于当前bean的父容器中. 使用此bean引用主要是当您有一个容器的层次结构时, 并且您希望在子容器中使用与父bean同名的代理来包装现有的bean.
+```
+<!-- 父容器中 -->
+<bean id="accountService" class="com.foo.SimpleAccountService">
+
+</bean>
+```
+
+```
+<!-- 子容器中 -->
+<bean id="accountService"
+    class="org.springframework.aop.framework.ProxyFactoryBean">
+    <property name="target">
+        <ref parent="accountService"/> <!-- 请注意我们如何引用父bean -->
+    </property>
+</bean>
+```
+
+## 内部beans
+```<property/>``` 或 ```<constructor-arg/>``` 元素中的 ```<bean/>``` 元素定义了一个所谓的内部bean.
+```
+<bean id="outer" class="...">
+    <property name="target">
+        <bean class="com.example.Person">
+            <property name="name" value="Fiona Apple"/>
+            <property name="age" value="25"/>
+        </bean>
+    </property>
+</bean>
+```
+内部bean定义不需要定义的 ```id``` 或 ```name```. 如果指定, 容器将不使用此类值作为标识符. 
+容器还忽略了创建时的 ```scope``` 标志: 
+ - 内部bean总是匿名的, 并且它们是用外部bean创建的.
+ - 不能将内部bean注入到其他bean中, 也不可能独立地访问它们.
+ 
+## 集合
+在 ```<list/>```、```<set/>```、```<map/>``` 和 ```<props/>``` 元素中, 分别设置了Java集合类型 ```List```, ```Set```, ```Map```, ```Properties```
+
+```
+<bean id="moreComplexObject" class="example.ComplexObject">
+    <!-- results in a setAdminEmails(java.util.Properties) call -->
+    <property name="adminEmails">
+        <props>
+            <prop key="administrator">administrator@example.org</prop>
+            <prop key="support">support@example.org</prop>
+            <prop key="development">development@example.org</prop>
+        </props>
+    </property>
+    <!-- results in a setSomeList(java.util.List) call -->
+    <property name="someList">
+        <list>
+            <value>a list element followed by a reference</value>
+            <ref bean="myDataSource" />
+        </list>
+    </property>
+    <!-- results in a setSomeMap(java.util.Map) call -->
+    <property name="someMap">
+        <map>
+            <entry key="an entry" value="just some string"/>
+            <entry key ="a ref" value-ref="myDataSource"/>
+        </map>
+    </property>
+    <!-- results in a setSomeSet(java.util.Set) call -->
+    <property name="someSet">
+        <set>
+            <value>just some string</value>
+            <ref bean="myDataSource" />
+        </set>
+    </property>
+</bean>
+```
+
+设置键或值可以是以下元素
+```
+bean | ref | idref | list | set | map | props | value | null
+```
+
+## 集合合并
+Spring容器还支持集合的合并. 应用程序开发人员可以定义父样式 ```<list/>```、```<map/>```、```<set/>``` 或 ```<props/>``` 元素, 并具有子样式 ```<list/>```、```<map/>```、```<set/>``` 或 ```<props/>``` 元素继承和重写父集合的值. 
+
+也就是说, 子集合的值是合并父集合和子集合的元素的结果, 其子集合的集合元素覆盖父集合中指定的值.
+```
+<beans>
+    <bean id="parent" abstract="true" class="example.ComplexObject">
+        <property name="adminEmails">
+            <props>
+                <prop key="administrator">administrator@example.com</prop>
+                <prop key="support">support@example.com</prop>
+            </props>
+        </property>
+    </bean>
+    
+    <bean id="child" parent="parent">
+        <property name="adminEmails">
+            <props merge="true">
+                <prop key="sales">sales@example.com</prop>
+                <prop key="support">support@example.co.uk</prop>
+            </props>
+        </property>
+    </bean>
+<beans>
+```
+
+注意, 在 ```child``` bean中定义的 ```adminEmails``` 属性的 ```<props/>``` 元素上使用了 ```Merge=true``` 属性. 当容器解析并实例化 ```child``` bean时, 会创建一个 ```adminEmails``` 集合的实例, 该集合包含子实例 ```adminEmails``` 集合和父实例 ```adminEmails``` 集合合并后的结果.
+
+```
+administrator=administrator@example.com
+sales=sales@example.com
+support=support@example.co.uk
+```
+
+> ```key="support"``` 被替换成了 ```support@example.co.uk``` 所以子集合的集合元素覆盖父集合中指定的值.
+
+**集合合并的局限性**
+如果尝试合并不同的集合类型(例如Map和List), 就会引发适当的异常.
+
+## 强类型集合
+在Java 5中引入泛型类型后, 可以使用强类型集合. 也就是说, 可以声明 ```Collection``` 类型, 使其只能包含 ```String``` 元素. 
+```
+public class Foo {
+
+    private Map<String, Float> accounts;
+
+    public void setAccounts(Map<String, Float> accounts) {
+        this.accounts = accounts;
+    }
+}
+```
+
+```
+<beans>
+    <bean id="foo" class="x.y.Foo">
+        <property name="accounts">
+            <map>
+                <entry key="one" value="9.99"/>
+                <entry key="two" value="2.75"/>
+                <entry key="six" value="3.99"/>
+            </map>
+        </property>
+    </bean>
+</beans>
+```
+这是利用Spring的类型转换, 在元素添加到集合之前将其转换为适当的类型.
+
+## Null 和 empty string 值
+```
+<bean class="ExampleBean">
+    <property name="email" value=""/>
+</bean>
+```
+同于以下Java代码
+```
+exampleBean.setEmail("");
+```
+
+```<null/>``` 元素处理null值
+```
+<bean class="ExampleBean">
+    <property name="email">
+        <null/>
+    </property>
+</bean>
+```
+同于以下Java代码
+```
+exampleBean.setEmail(null);
+```
+
+## 混合属性名
+在设置bean属性时, 可以使用混合或嵌套属性名称.
+```
+<bean id="foo" class="foo.Bar">
+    <property name="fred.bob.sammy" value="123" />
+</bean>
+```
+
+## depends-on属性
+有些时候我们要按照顺序来初始化bean, 在XML元数据配置文件中默认的是按照 ```<bean/>``` 元素的顺序进行初始化的.
+
+但是在有些情况下我们可以使用 ```depends-on``` 属性来表示, 当前bean初始化之前要先初始化哪个bean.
+```
+<bean id="beanOne" class="ExampleBean" depends-on="manager"/>
+<bean id="manager" class="ManagerBean" />
+```
+```
+<bean id="beanOne" class="ExampleBean" depends-on="manager,accountDao">
+    <property name="manager" ref="manager" />
+</bean>
+
+<bean id="manager" class="ManagerBean" />
+<bean id="accountDao" class="x.y.jdbc.JdbcAccountDao" />
+```
+
+## 延迟加载(惰性初始化) beans
+一个延迟初始化的bean告诉IoC容器在第一次请求时创建一个bean实例, 而不是在容器创建时.
+```
+<bean id="lazy" class="com.foo.ExpensiveToCreateBean" lazy-init="true"/>
+<bean name="not.lazy" class="com.foo.AnotherBean"/>
+```
+使用 ```lazy-init``` 属性.
+
+## 自动装配
+通过检查 ```ApplicationContext``` 的内容, 您可以允许Spring自动创建bean之间的关系. 自动装配具有以下优点:
+ - 减少我们显示的指定属性或构造函数参数.
+ - 自动装配可以随着对象的变化而更新配置. 例如, 需要向类添加依赖项, 则可以自动满足该依赖关系, 而无需修改配置.
+ 
+当使用基于XML配置的元数据时, 可以使用 ```<bean/>``` 元素的 ```autowire``` 属性为bean定义指定自动装配模式. 
+
+自动装配功能有四种模式:
+ - **no**: 不使用自动装配. Bean的依赖必须通过 ```ref``` 元素定义. 这是默认的配置, 在较大的部署环境中不鼓励改变这个配置, 因为明确的指定能够得到更多的控制和清晰性. 从某种程度上说, 这也是系统结构的文档形式.
+ - **byName**: 通过属性名字进行自动装配. 这个选项会会检查BeanFactory，查找一个与将要装配的属性同样名字的bean 。比如，你有一个bean的定义被设置为通过名字自动装配，它包含一个master属性（也就是说，它有一个setMaster(...)方法），Spring就会查找一个叫做master的bean定义，然后用它来设置master属性。
+ - **byType**: 如果BeanFactory中正好有一个同属性类型一样的bean，就自动装配这个属性。如果有多于一个这样的bean，就抛出一个致命异常，它指出你可能不能对那个bean使用byType的自动装配。如果没有匹配的bean，则什么都不会发生，属性不会被设置。如果这是你不想要的情况（什么都不发生），通过设置dependency-check="objects"属性值来指定在这种情况下应该抛出错误。
+ - **constructor**: 这个同byType类似，不过是应用于构造函数的参数。如果在BeanFactory中不是恰好有一个bean与构造函数参数相同类型，则一个致命的错误会产生。
+
+
+
+
 
 
 
