@@ -65,33 +65,24 @@ url-pattern配置有三种:
 ## Spring MVC 执行流程
 ![Spring MVC 执行流程](https://upload-images.jianshu.io/upload_images/3938475-444f2b2c1af42583.png)
 
+1. 用户发起请求到前端控制器(DispatcherServler)
+2. 前端控制器调用 ```HandlerMapping``` (处理器映射器), 找到URL所对应的Handler.并返回一个 ```HandlerExecuteChain``` 对象.其中包含有拦截器链与URL对应的Handler.
+也就是说 ```HandlerMapping``` 主要是帮我们查找要Handler,并返回一个 ```HandlerExecutChain``` 对象.
+3. 调用 ```HandlerAdapter``` (处理器适配器)来执行Handler并返回 ```ModelAndView``` 对象.
+4. 调用 ```ViewResolver``` (视图解析器), 将逻辑视图解析成物理视图并返回View对象. 例如我们ModelAndView中存放的视图名为"user"(逻辑视图),通过ViewResolver(视图解析器),解析为"/WEB-INF/user.jsp"(物理视图).
+5. 前端控制器进行视图渲染,将模型数据填充到Request域中.
+6. 前端控制器向用户响应结果.
 
+## Spring MVC 与 Struts2对比
+**入口**
+Spring MVC入口是servlet,而Struts2是filter.
+因为我们在配置web.xml的时候使用了不同的标签进行的配置.
 
+**对request请求参数的封装**
+SpringMVC的方法之间基本上独立的,独享request response数据,请求数据通过方法参数进行传递.
+Struts2把request请求参数封装到Action的属性上.虽然方法之间也是独立的,但Action变量是共享的,也就是说我们每次请求就要创建一个Action.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+**对于ajax**
+SpringMVC集成了Ajax只需一个注解@ResponseBody就可以.
+Struts2拦截器集成了Ajax,但是在Action中处理时需要先继承json-default
 
