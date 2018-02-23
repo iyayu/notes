@@ -51,11 +51,16 @@ Spring提供了一个监听类 ```org.srpingframework.web.context.ContextLoaderL
 
 其中, ```contextConfigLocation``` 参数用来指定Spring配置文件的路径. 如果没有指定 ```contextConfigLocation``` 参数, ```ContextLoaderListener``` 默认会查找 ```/WEB-INF/applicationContext.xml``` .
 
-换句话说,如果我们将Spring 的配置文件命名为 ```applicationContext.xml``` 并放在 ```WEB-INF``` 目录下,即使不指定
-```contextConfigLocation``` 参数,也能实现配置文件的加载.
+换句话说,如果我们将Spring 的配置文件命名为 ```applicationContext.xml``` 并放在 ```WEB-INF``` 目录下,即使不指定 ```contextConfigLocation``` 参数,也能实现配置文件的加载.
 
+```DispatcherServlet``` 对象中的 ```contextConfigLocation``` 属性是用来配置 SpringMVC 的. 如果没有设置值, 默认加载的是 ```/WEB-INF/servlet名称-servlet.xml``` 例如 ```/WEB-INF/servletapp-servlet.xml```
 
-
+**关于url-pattern的配置**
+url-pattern配置有三种:
+ - ```*.do``` 访问以.do结尾的由 ```DispatcherServlet``` 进行解析.
+ - ```/(斜杠)``` 所有访问的地址都由DispatcherServlet进行解析,对于静态的文件解析需要配置,不让DispatcherServlet进行解析. 注意:使用此种方式可以实现 RESTful风格的url.
+ - ```/*``` 使用这种配置,最终要转发到一个jsp页面时,仍然会由DispatcherServlet进行解析.
+ 
 
 
 
