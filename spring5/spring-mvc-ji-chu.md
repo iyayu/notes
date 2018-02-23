@@ -75,14 +75,17 @@ url-pattern配置有三种:
 
 ## Spring MVC 与 Struts2对比
 **入口**
+
 Spring MVC入口是servlet,而Struts2是filter.
 因为我们在配置web.xml的时候使用了不同的标签进行的配置.
 
 **对request请求参数的封装**
+
 SpringMVC的方法之间基本上独立的,独享request response数据,请求数据通过方法参数进行传递.
 Struts2把request请求参数封装到Action的属性上.虽然方法之间也是独立的,但Action变量是共享的,也就是说我们每次请求就要创建一个Action.
 
 **对于ajax**
+
 SpringMVC集成了Ajax只需一个注解@ResponseBody就可以.
 Struts2拦截器集成了Ajax,但是在Action中处理时需要先继承json-default
 
