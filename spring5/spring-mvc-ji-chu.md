@@ -12,4 +12,80 @@ Spring Web MVC是建立在servlet API上的Web框架. 而且是围绕前端控�
  - **视图(View)**: 视图是为请求而创建的对象.
 
 ## DispatcherServlet
-在上面我们说过 SpringMVC 是围绕前端控制器模式设计的. 所有请求都是通过前端控制器来进行处理. 所以在 SpringMVC 中所有前端控制器就是 ```DispatcherServlet```. 
+在上面我们说过 SpringMVC 是围绕前端控制器模式设计的. 所有请求都是通过前端控制器来进行处理. 所以在 SpringMVC 中前端控制器就是 ```DispatcherServlet```. 
+
+我们可以通过 ```web.xml``` 配置文件来配置
+```
+<web-app>
+
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>/WEB-INF/app-context.xml</param-value>
+    </context-param>
+
+    <servlet>
+        <servlet-name>app</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value></param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>app</servlet-name>
+        <url-pattern>/app/*</url-pattern>
+    </servlet-mapping>
+
+</web-app>
+```
+
+由于Web应用程序入口是被Web服务器控制的, 所以无法在 ```main()``` 方法中通过创建 ```ClassPathXmlApplicationContext``` 对象来启动Spring容器.
+
+Spring提供了一个监听类 ```org.srpingframework.web.context.ContextLoaderListener``` 来解决这个问题. 该监听器实现了```ServletContextListener``` 接口, 可以在Web容器启动的时候初始化Spring容器.
+
+其中, ```contextConfigLocation``` 参数用来指定Spring配置文件的路径. 如果没有指定 ```contextConfigLocation``` 参数, ```ContextLoaderListener``` 默认会查找 ```/WEB-INF/applicationContext.xml``` .
+
+换句话说,如果我们将Spring 的配置文件命名为 ```applicationContext.xml``` 并放在 ```WEB-INF``` 目录下,即使不指定
+```contextConfigLocation``` 参数,也能实现配置文件的加载.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
